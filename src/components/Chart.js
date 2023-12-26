@@ -5,6 +5,11 @@ import {CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XA
 
 
 export default function Chart({data}) {
+  if (!data || !Array.isArray(data) || data.length === 0) {
+    // Return an error message or handle the scenario where data is invalid
+    return <div>Data is invalid or empty</div>;
+  }
+
   const xLabelKey = Object.keys(data[0]).find(key => key !== 'date');
 
   const dataWithoutGaps = [];

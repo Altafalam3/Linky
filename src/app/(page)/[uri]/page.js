@@ -43,7 +43,17 @@ function buttonLink(key, value) {
 export default async function UserPage({params}) {
   const uri = params.uri;
   mongoose.connect(process.env.MONGO_URI);
+
   const page = await Page.findOne({uri});
+
+  if(!page){
+    return(
+      <div>
+        No users found for this username, recheck the username
+      </div>
+    )
+  }
+
   const user = await User.findOne({email:page.owner});
   await Event.create({uri:uri, page:uri, type:'view'});
   return (
@@ -92,7 +102,7 @@ export default async function UserPage({params}) {
             className="bg-indigo-800 p-2 block flex"
             href={link.url}>
             <div className="relative -left-4 overflow-hidden w-16">
-              <div className="w-16 h-16 bg-blue-700 aspect-square relative flex items-center justify-center aspect-square">
+              <div className="w-16 h-16 bg-blue-700 aspect-square relative flex items-center justify-center">
                 {link.icon && (
                   <Image
                     className="w-full h-full object-cover"
