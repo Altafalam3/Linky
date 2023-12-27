@@ -3,10 +3,12 @@ const nextConfig = {
   images: {
     remotePatterns: [
       {
-        hostname: '*.googleusercontent.com'
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+        pathname: '**',
       },
       {
-        hostname: 'linklist-files.s3.amazonaws.com',
+        hostname: '*.googleusercontent.com'
       },
     ],
   }
