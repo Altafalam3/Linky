@@ -6,10 +6,10 @@ cloudinary.config({
 })
 
 export async function POST(req) {
-  const formData = await req.formData();
+  try {
+    const formData = await req.formData();
 
-  if (formData.has('file')) {
-    try {
+    if (formData.has('file')) {
       const file = formData.get('file');
       const fileBuffer = await file.arrayBuffer();
       const buffer = new Uint8Array(fileBuffer);
@@ -30,11 +30,11 @@ export async function POST(req) {
       console.log(uploadResponse.secure_url)
 
       return Response.json(uploadResponse.secure_url);
-    } catch (error) {
-      console.log("3-----------------")
-      console.error('Error during upload:', error);
-      return new Response('Error uploading image', { status: 500 });
     }
-
+  } catch (error) {
+    console.log("3-----------------")
+    console.error('Error during upload:', error);
+    return new Response('Error uploading image', { status: 500 });
   }
+
 }
