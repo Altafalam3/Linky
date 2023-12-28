@@ -4,42 +4,32 @@ cloudinary.config({
   cloud_name: process.env.CLOUDINARY_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
-  secure: true
-})
+  secure: true // Enabling secure uploads
+});
 
 export async function POST(req) {
   const formData = await req.formData();
 
   if (formData.has('file')) {
     const file = formData.get('file');
-    const fileBuffer = await file.arrayBuffer(); // Convert File object to a buffer
-    // console.log(fileBuffer)
+    const fileBuffer = await file.arrayBuffer();
 
-    let mime = file.type;
-    let encoding = 'base64';
-    let base64Data = Buffer.from(fileBuffer).toString('base64');
-    let fileUri = 'data:' + mime + ';' + encoding + ',' + base64Data;
 
-    const uploadToCloudinary = () => {
-      return new Promise((resolve, reject) => {
+    try {
+      const uploadResponse = await cloudinary.uploader.upload_stream({}, async (error, result) => {
+        if (error) {
+          console.error('Error uploading to Cloudinary:', error);
+          return new Response('Error uploading image', { status: 500 });
+        }
+        if (result && result.secure_url) {
+          return Response.json(result.secure_url);
+        }
+      }).end(fileBuffer);
 
-        let result = cloudinary.uploader.upload(fileUri, {
-          invalidate: true
-        })
-          .then((result) => {
-            console.log(result);
-            resolve(result);
-          })
-          .catch((error) => {
-            console.log(error);
-            reject(error);
-          });
-      });
-    };
-
-    let uploadResponse = await uploadToCloudinary();
-    console.log(uploadResponse);
-
-    return Response.json(uploadResponse.secure_url);
+      return uploadResponse; // Return the response from Cloudinary
+    } catch (error) {
+      console.error('Error during upload:', error);
+      return new Response('Error uploading image', { status: 500 });
+    }
   }
 }
