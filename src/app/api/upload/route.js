@@ -1,40 +1,44 @@
 import { v2 as cloudinary } from 'cloudinary';
+
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+  secure: true
 })
 
 export async function POST(req) {
-  try {
-    const formData = await req.formData();
+  const formData = await req.formData();
 
-    if (formData.has('file')) {
-      const file = formData.get('file');
-      const fileBuffer = await file.arrayBuffer();
-      const buffer = new Uint8Array(fileBuffer);
+  if (formData.has('file')) {
+    const file = formData.get('file');
+    const fileBuffer = await file.arrayBuffer();
 
-      let uploadResponse;
-      console.log("1-----------------")
+    let mime = file.type;
+    let encoding = 'base64';
+    let base64Data = Buffer.from(fileBuffer).toString('base64');
+    let fileUri = 'data:' + mime + ';' + encoding + ',' + base64Data;
 
-      uploadResponse = await new Promise((resolve, reject) => {
-        cloudinary.uploader.upload_stream({}, (error, result) => {
-          if (error) {
+    const uploadToCloudinary = () => {
+      return new Promise((resolve, reject) => {
+
+        let result = cloudinary.uploader.upload(fileUri, {
+          invalidate: true
+        })
+          .then((result) => {
+            console.log(result);
+            resolve(result);
+          })
+          .catch((error) => {
+            console.log(error);
             reject(error);
-            return;
-          }
-          resolve(result);
-        }).end(buffer);
-      })
-      console.log("2-----------------")
-      console.log(uploadResponse.secure_url)
+          });
+      });
+    };
 
-      return Response.json(uploadResponse.secure_url);
-    }
-  } catch (error) {
-    console.log("3-----------------")
-    console.error('Error during upload:', error);
-    return new Response('Error uploading image', { status: 500 });
+    let uploadResponse = await uploadToCloudinary();
+    console.log(uploadResponse);
+
+    return Response.json(uploadResponse.secure_url);
   }
-
 }
